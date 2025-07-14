@@ -1,15 +1,17 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, TouchableOpacity, View, ScrollView } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, TextInput } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Button, LanguageToggle, ThemeToggle } from '../components';
 import useTheme from '../hooks/UseThemeHooks';
+import { useTranslation } from '../hooks/useTranslation';
 import { setProfile } from '../Store';
-import { Button, ThemeToggle } from '../components';
 
 const AuthScreen = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [avatar, setAvatar] = useState('https://img.freepik.com/premium-vector/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-vector-illustration_561158-3383.jpg?w=1380');
   const [emailError, setEmailError] = useState('');
@@ -19,7 +21,7 @@ const AuthScreen = () => {
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permissão negada', 'Permita o acesso à galeria para escolher uma foto.');
+      Alert.alert(t('auth.permissionDenied'), t('auth.galleryPermission'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -40,11 +42,11 @@ const AuthScreen = () => {
 
   const handleLogin = () => {
     if (!email.trim()) {
-      setEmailError('O email é obrigatório.');
+      setEmailError(t('auth.emailRequired'));
       return;
     }
     if (!validateEmail(email.trim())) {
-      setEmailError('Digite um email válido.');
+      setEmailError(t('auth.emailInvalid'));
       return;
     }
     setEmailError('');
@@ -56,14 +58,15 @@ const AuthScreen = () => {
       colors={isDark ? ['#1a1a1a', '#2d2d2d', '#1a1a1a'] : ['#f8f9fa', '#ffffff', '#f8f9fa']}
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      {/* Theme Toggle Button */}
+      {/* Theme and Language Toggle Buttons */}
       <ThemeToggle style={styles.themeToggle} />
+      <LanguageToggle style={styles.languageToggle} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.primary }]}>Welcome</Text>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>{t('auth.welcome')}</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            Enter your details to continue
+            {t('auth.enterDetails')}
           </Text>
         </View>
 
@@ -74,12 +77,12 @@ const AuthScreen = () => {
               <Ionicons name="camera" size={24} color="#fff" />
             </View>
           </TouchableOpacity>
-          <Text style={[styles.changePhoto, { color: theme.colors.primary }]}>Change Photo</Text>
+          <Text style={[styles.changePhoto, { color: theme.colors.primary }]}>{t('auth.changePhoto')}</Text>
         </View>
 
         <View style={styles.formContainer}>
           <TextInput
-            label="Email Address"
+            label={t('auth.emailAddress')}
             value={email}
             onChangeText={text => {
               setEmail(text);
@@ -103,7 +106,7 @@ const AuthScreen = () => {
         </View>
 
         <Button 
-          title="Continue"
+          title={t('auth.continue')}
           onPress={handleLogin}
           variant="primary"
           size="large"
@@ -122,6 +125,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 24,
+    zIndex: 10,
+  },
+  languageToggle: {
+    position: 'absolute',
+    top: 50,
+    right: 80,
     zIndex: 10,
   },
   scrollContent: {

@@ -1,20 +1,22 @@
-import React from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    StatusBar, 
-    ImageBackground,
-    Animated,
-    Dimensions
-} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import {
+    Animated,
+    Dimensions,
+    ImageBackground,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
 import { useDispatch } from 'react-redux';
-import { Button, ThemeToggle } from '../components';
+import { Button } from '../components';
+import { useTranslation } from '../hooks/useTranslation';
 
 import { setHasSeenLanding } from '../Store';
 
 const LandingScreen = ({ navigation }) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const opacity = React.useRef(new Animated.Value(0)).current;
 
@@ -38,39 +40,33 @@ const LandingScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            
-            {/* Theme Toggle Button */}
-            <ThemeToggle style={styles.themeToggle} />
 
             {/* Background */}
             <ImageBackground
-                source={{
-                    uri: 'https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop'
-                }}
+                source={require('../assets/images/cars/suv_1.jpeg')} // You can replace this with your landing-car.jpg when you save it
                 style={styles.backgroundImage}
                 resizeMode="cover"
                 imageStyle={styles.backgroundImageStyle}
             >
                 <LinearGradient
-                    colors={['rgba(0,0,0,0.3)', 'rgba(2,2,2,0.8)', '#020202']}
+                    colors={['rgba(0,20,40,0.4)', 'rgba(0,10,30,0.7)', 'rgba(0,5,15,0.9)']}
                     style={styles.gradient}
                 >
                     <Animated.View style={[styles.content, { opacity }]}>
                         {/* Title */}
                         <View style={styles.textContainer}>
                             <Text style={styles.title}>
-                                Premium cars.{'\n'}Enjoy the luxury
+                                {t('landing.title')}
                             </Text>
                             <Text style={styles.subtitle}>
-                                Premium and prestige car for your lifestyle.{'\n'}
-                                Experience the thrill at affordable rate
+                                {t('landing.subtitle')}
                             </Text>
                         </View>
 
                         {/* Button */}
                         <View style={styles.buttonContainer}>
                             <Button
-                                title="Let's Go"
+                                title={t('landing.letsGo')}
                                 onPress={handleGetStarted}
                                 variant="secondary"
                                 size="large"
@@ -91,13 +87,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#020202',
-    },
-    themeToggle: {
-        position: 'absolute',
-        top: 50,
-        right: 24,
-        zIndex: 10,
-        backgroundColor: 'rgba(0,0,0,0.3)',
     },
     backgroundImage: {
         flex: 1,
@@ -123,25 +112,28 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end',
         marginBottom: 40,
+        paddingHorizontal: 4,
     },
     title: {
         color: '#fff',
-        fontSize: 41,
+        fontSize: 42,
         fontWeight: 'bold',
         lineHeight: 50,
         marginBottom: 16,
-        textShadowColor: 'rgba(0, 0, 0, 0.8)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
+        textShadowColor: 'rgba(0, 20, 40, 0.9)',
+        textShadowOffset: { width: 0, height: 3 },
+        textShadowRadius: 6,
+        letterSpacing: 0.5,
     },
     subtitle: {
-        color: '#CDD6DF',
+        color: '#E8F1FF',
         fontSize: 16,
-        lineHeight: 22,
-        width: '85%',
-        textShadowColor: 'rgba(0, 0, 0, 0.6)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
+        lineHeight: 24,
+        width: '90%',
+        textShadowColor: 'rgba(0, 20, 40, 0.8)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+        opacity: 0.95,
     },
     buttonContainer: {
         alignItems: 'center',
@@ -151,18 +143,20 @@ const styles = StyleSheet.create({
         width: '85%',
         backgroundColor: '#fff',
         borderWidth: 0,
-        shadowColor: '#000',
+        shadowColor: '#1E3A8A',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: 6,
         },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 8,
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 12,
+        borderRadius: 12,
     },
     buttonText: {
-        color: '#192129',
+        color: '#1E40AF',
         fontWeight: 'bold',
+        fontSize: 18,
     },
 });
 

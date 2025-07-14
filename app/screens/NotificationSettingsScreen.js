@@ -1,20 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import LanguageSelector from '../components/LanguageSelector';
 import { Header } from '../components/ui';
 import { getThemeColors } from '../constants/theme';
 import { useAuctionNotifications } from '../hooks/useAuctionNotifications';
+import { useTranslation } from '../hooks/useTranslation';
 
 const NotificationSettingsScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const [notificationStats, setNotificationStats] = useState({ total: 0, upcoming: 0, expired: 0 });
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [testNotificationSent, setTestNotificationSent] = useState(false);
@@ -48,14 +51,23 @@ const NotificationSettingsScreen = ({ navigation }) => {
     if (value) {
       try {
         await initializeNotifications();
-        Alert.alert('Notifications Enabled', 'Auction notifications have been enabled.');
+        Alert.alert(
+          t('notificationSettings.notificationsEnabled'), 
+          t('notificationSettings.notificationsEnabledMessage')
+        );
       } catch (_error) {
-        Alert.alert('Error', 'Failed to enable notifications. Please check your permissions.');
+        Alert.alert(
+          t('notificationSettings.error'), 
+          t('notificationSettings.errorMessage')
+        );
         setNotificationsEnabled(false);
       }
     } else {
       await clearAllNotifications();
-      Alert.alert('Notifications Disabled', 'All auction notifications have been disabled.');
+      Alert.alert(
+        t('notificationSettings.notificationsDisabled'), 
+        t('notificationSettings.notificationsDisabledMessage')
+      );
     }
     
     updateStats();
@@ -63,7 +75,10 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
   const handleSendTestNotification = async () => {
     if (favoriteVehicles.length === 0) {
-      Alert.alert('No Favorites', 'Please add some vehicles to favorites first.');
+      Alert.alert(
+        t('notificationSettings.noFavorites'), 
+        t('notificationSettings.noFavoritesMessage')
+      );
       return;
     }
 
@@ -76,12 +91,12 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
   const handleClearAllNotifications = () => {
     Alert.alert(
-      'Clear All Notifications',
-      'Are you sure you want to clear all scheduled auction notifications?',
+      t('notificationSettings.clearAllNotificationsTitle'),
+      t('notificationSettings.clearAllNotificationsMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('notificationSettings.cancel'), style: 'cancel' },
         {
-          text: 'Clear All',
+          text: t('notificationSettings.clearAll'),
           style: 'destructive',
           onPress: async () => {
             await clearAllNotifications();
@@ -95,20 +110,25 @@ const NotificationSettingsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header
-        title="Notification Settings"
+        title={t('notificationSettings.title')}
         showBackButton
         onBackPress={() => navigation.goBack()}
       />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Language Selector */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Auction Notifications</Text>
+          <LanguageSelector />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('notificationSettings.auctionNotifications')}</Text>
           
           <View style={[styles.settingItem, styles.settingItemLast]}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingLabel}>Enable Notifications</Text>
+              <Text style={styles.settingLabel}>{t('notificationSettings.enableNotifications')}</Text>
               <Text style={styles.settingDescription}>
-                Get notified when your favorite car auctions end
+                {t('notificationSettings.enableNotificationsDescription')}
               </Text>
             </View>
             <Switch
@@ -123,7 +143,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
 
         {/* Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Actions</Text>
+          <Text style={styles.sectionTitle}>{t('notificationSettings.actions')}</Text>
           
           <TouchableOpacity
             style={[styles.button, testNotificationSent && styles.successButton]}
@@ -136,7 +156,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
               color="white" 
             />
             <Text style={styles.buttonText}>
-              {testNotificationSent ? 'Test Sent!' : 'Send Test Notification'}
+              {testNotificationSent ? t('notificationSettings.testSent') : t('notificationSettings.sendTestNotification')}
             </Text>
           </TouchableOpacity>
           
@@ -145,7 +165,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
             onPress={updateStats}
           >
             <Ionicons name="refresh-outline" size={20} color="white" />
-            <Text style={styles.buttonText}>Refresh Statistics</Text>
+            <Text style={styles.buttonText}>{t('notificationSettings.refreshStatistics')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -154,7 +174,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
             disabled={notificationStats.total === 0}
           >
             <Ionicons name="trash-outline" size={20} color="white" />
-            <Text style={styles.buttonText}>Clear All Notifications</Text>
+            <Text style={styles.buttonText}>{t('notificationSettings.clearAllNotifications')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

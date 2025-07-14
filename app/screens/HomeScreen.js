@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     FlatList,
     SafeAreaView,
     ScrollView,
@@ -13,6 +12,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useVehicles, useVehicleSearch } from '../hooks/useApiHooks';
 import useTheme from '../hooks/UseThemeHooks';
+import { useTranslation } from '../hooks/useTranslation';
 import { checkAPIHealth } from '../services/ApiService';
 
 import {
@@ -27,6 +27,7 @@ import {
 import { setFilters as setReduxFilters } from '../Store';
 
 const HomeScreen = ({ navigation }) => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const { theme } = useTheme();
     
@@ -64,19 +65,11 @@ const HomeScreen = ({ navigation }) => {
             const isHealthy = await checkAPIHealth();
             if (isHealthy) {
                 setApiMode(true);
-            } else {
-                Alert.alert(
-                    'API Server Not Running',
-                    'The app is running in offline mode with local data.\n\nTo enable API features:\n1. Open a new terminal\n2. Run: npm run api\n3. Restart the app',
-                    [
-                        { text: 'Continue Offline', style: 'cancel' },
-                        { text: 'View Setup Guide', onPress: () => {} }
-                    ]
-                );
             }
+            // Removed the alert - app will silently fall back to offline mode
         };
         checkAPI();
-    }, []);
+    }, [t]);
     
     // Determine which data source to use
     const vehicles = apiMode ? (searchText ? searchResults : apiVehicles) : reduxVehicles;
@@ -191,11 +184,11 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.loadingFooter}>
                 <ActivityIndicator size="small" color="#007AFF" />
                 <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
-                    Loading more vehicles...
+                    {t('home.loadMore')}
                 </Text>
             </View>
         );
-    }, [apiMode, loading, isLoadingMore, theme.colors.textSecondary]);
+    }, [apiMode, loading, isLoadingMore, theme.colors.textSecondary, t]);
 
     const renderQuickFilters = () => {
         return (
