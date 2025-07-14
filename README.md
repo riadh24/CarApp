@@ -1,5 +1,9 @@
  Riadh Car Auction App
 
+
+https://github.com/user-attachments/assets/21ccad5e-e908-44ca-88fc-8ecba6e2b252
+
+
 A modern React Native car auction application built with Expo, featuring real-time notifications, Redux state management, and a clean, responsive UI.
 
  Features
