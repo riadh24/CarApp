@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Riadh-car-app",
+    "slug": "Riadh-car-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "riadhcarapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "statusBar": {
+      "hidden": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "statusBarStyle": "dark"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "statusBar": {
+        "hidden": true,
+        "backgroundColor": "#000000"
+      },
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./app/assets/icon.png",
+          "color": "#ffffff"
+        }
+      ],
+      [
+        "expo-task-manager",
+        {}
+      ]
+    ]
+  }
+}
