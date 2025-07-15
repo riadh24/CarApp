@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["NotificationNative2Module"]
+  },
+  "android": {
+    "modules": ["expo.modules.notificationnative2.NotificationNative2Module"]
+  }
+}
