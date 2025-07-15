@@ -1,4 +1,5 @@
 import * as Application from 'expo-application';
+import { NativeNotificationService } from '../../modules/notification-native';
 import AuctionNotificationModule from '../modules/AuctionNotificationModule';
 import ExpoGoNotificationService from '../services/ExpoGoNotificationService';
 
@@ -9,7 +10,19 @@ import ExpoGoNotificationService from '../services/ExpoGoNotificationService';
 class SmartNotificationService {
   constructor() {
     this.isExpoGo = Application.applicationName === 'Expo Go' || __DEV__;
-    this.service = this.isExpoGo ? ExpoGoNotificationService : AuctionNotificationModule;
+    this.hasNativeModule = true; // We now have a native module available
+    
+    // Priority: Native > Expo Notifications > ExpoGo fallback
+    if (!this.isExpoGo && this.hasNativeModule) {
+      this.service = NativeNotificationService;
+      this.serviceType = 'native';
+    } else if (this.isExpoGo) {
+      this.service = ExpoGoNotificationService;
+      this.serviceType = 'expo-go';
+    } else {
+      this.service = AuctionNotificationModule;
+      this.serviceType = 'expo-notifications';
+    }
   }
 
   // Proxy all methods to the appropriate service
@@ -35,7 +48,9 @@ class SmartNotificationService {
 
   async sendTestNotification(vehicle) {
     // Use the appropriate method name based on service type
-    if (this.isExpoGo) {
+    if (this.serviceType === 'expo-go') {
+      return this.service.sendTestNotification(vehicle);
+    } else if (this.serviceType === 'native') {
       return this.service.sendTestNotification(vehicle);
     } else {
       return this.service.sendImmediateNotification(vehicle);
@@ -62,12 +77,17 @@ class SmartNotificationService {
   getServiceInfo() {
     return {
       isExpoGo: this.isExpoGo,
-      serviceName: this.isExpoGo ? 'ExpoGoNotificationService' : 'AuctionNotificationModule',
+      serviceType: this.serviceType,
+      serviceName: this.serviceType === 'native' ? 'NativeNotificationService' : 
+                   this.serviceType === 'expo-go' ? 'ExpoGoNotificationService' : 'AuctionNotificationModule',
       features: {
-        backgroundTasks: !this.isExpoGo,
-        pushNotifications: !this.isExpoGo,
+        backgroundTasks: this.serviceType === 'native' || this.serviceType === 'expo-notifications',
+        pushNotifications: this.serviceType === 'native' || this.serviceType === 'expo-notifications',
         localNotifications: true,
         appStateMonitoring: true,
+        nativeCapabilities: this.serviceType === 'native',
+        badgeCount: this.serviceType === 'native',
+        soundCustomization: this.serviceType === 'native',
       }
     };
   }
