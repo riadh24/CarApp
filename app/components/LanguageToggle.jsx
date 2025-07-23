@@ -1,13 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
-import { getThemeColors } from '../constants/theme';
+import useTheme from '../hooks/UseThemeHooks';
 import { useTranslation } from '../hooks/useTranslation';
 
 const LanguageToggle = ({ style, size = 20, ...props }) => {
   const { changeLanguage, currentLanguage } = useTranslation();
-  const theme = useSelector(state => state.profile.isDarkTheme);
-  const colors = getThemeColors(theme);
+  const { theme } = useTheme();
 
   const toggleLanguage = () => {
     const newLanguage = currentLanguage === 'en' ? 'fr' : 'en';
@@ -18,7 +16,7 @@ const LanguageToggle = ({ style, size = 20, ...props }) => {
     <TouchableOpacity 
       style={[
         {
-          backgroundColor: colors.overlay,
+          backgroundColor: theme.colors.overlay,
           borderRadius: 20,
           padding: 12,
         },
@@ -31,7 +29,7 @@ const LanguageToggle = ({ style, size = 20, ...props }) => {
       <Ionicons 
         name="language-outline" 
         size={size} 
-        color={colors.text} 
+        color={theme.colors.text} 
       />
     </TouchableOpacity>
   );

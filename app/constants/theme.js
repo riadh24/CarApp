@@ -18,18 +18,6 @@ export const COLORS = {
     transparentGray: 'rgba(77,77,77, 0.8)',
 };
 
-export const getThemeColors = (isDarkTheme) => ({
-    background: isDarkTheme ? '#1a1a1a' : '#ffffff',
-    surface: isDarkTheme ? '#2d2d2d' : '#f8f9fa',
-    text: isDarkTheme ? '#ffffff' : '#333333',
-    textSecondary: isDarkTheme ? '#cccccc' : '#666666',
-    border: isDarkTheme ? '#404040' : '#e0e0e0',
-    accent: '#007AFF',
-    success: '#34C759',
-    warning: '#FF9500',
-    danger: '#FF3B30',
-});
-
-const appTheme = { COLORS, getThemeColors };
+const appTheme = { COLORS };
 
 export default appTheme;

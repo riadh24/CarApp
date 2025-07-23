@@ -1,13 +1,18 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useSelector } from 'react-redux';
+import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import AuthStack from './AuthStack';
 import DrawerNavigator from './DrawerNavigator';
 
 const Stack = createStackNavigator();
 
 const RootNavigator = () => {
-  const isAuthenticated = useSelector(state => state.profile.isAuthenticated);
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show loading screen while auth state is being determined
+  if (isLoading) {
+    return null; // Or a loading component
+  }
 
   return (
     <Stack.Navigator

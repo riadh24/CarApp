@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useAuth } from '../contexts/AuthContext';
 import { useAuctionNotifications } from '../hooks/useAuctionNotifications';
 
 /**
@@ -8,7 +9,7 @@ import { useAuctionNotifications } from '../hooks/useAuctionNotifications';
  * notification system is properly initialized
  */
 const NotificationInitializer = ({ children }) => {
-  const isAuthenticated = useSelector(state => state.profile.isAuthenticated);
+  const { isAuthenticated } = useAuth();
   const vehicles = useSelector(state => state.vehicles.allVehicles);
   
   const { initializeNotifications } = useAuctionNotifications();

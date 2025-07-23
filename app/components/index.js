@@ -1,14 +1,14 @@
 import CarsCard from "./CarsCard";
 import FilterModal from "./FilterModal";
-import LanguageSelector from "./LanguageSelector";
 import LanguageToggle from "./LanguageToggle";
+import NotificationInitializer from "./NotificationInitializer";
 
 // Export business components
 export {
     CarsCard,
     FilterModal,
-    LanguageSelector,
-    LanguageToggle
+    LanguageToggle,
+    NotificationInitializer
 };
 
 // Export UI components

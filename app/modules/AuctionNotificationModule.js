@@ -3,7 +3,7 @@ import * as Application from 'expo-application';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
-import { parseVehicleDate } from '../Store';
+import { parseVehicleDate } from '../utils';
 
 const BACKGROUND_AUCTION_CHECK = 'background-auction-check';
 const AUCTION_NOTIFICATIONS_KEY = 'auction_notifications_scheduled';
