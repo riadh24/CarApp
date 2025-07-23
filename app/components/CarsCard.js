@@ -9,7 +9,8 @@ import {
     View
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { parseVehicleDate, toggleFavorite } from '../Store';
+import { toggleFavorite } from '../Store';
+import { parseVehicleDate } from '../utils';
 
 const { width } = Dimensions.get('window');
 

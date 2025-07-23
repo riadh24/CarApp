@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application';
 import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
-import { parseVehicleDate } from '../Store';
+import { parseVehicleDate } from '../utils';
 
 const EXPO_GO_NOTIFICATIONS_KEY = 'expo_go_notifications';
 

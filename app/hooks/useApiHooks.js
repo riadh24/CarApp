@@ -26,7 +26,6 @@ export const useVehicles = (page = 1, limit = 20, filters = {}) => {
       if (page === 1) {
         setVehicles(result.data);
       } else {
-        // Append new data for pagination
         setVehicles(prev => [...prev, ...result.data]);
       }
       
@@ -108,63 +107,6 @@ export const useVehicleSearch = () => {
     error,
     search,
     clearResults,
-  };
-};
-
-// Custom hook for filtering vehicles
-export const useVehicleFilter = () => {
-  const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const applyFilters = useCallback(async (filters) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const data = await vehicleAPI.filter(filters);
-      setFilteredVehicles(data);
-    } catch (err) {
-      setError(err.message);
-
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return {
-    filteredVehicles,
-    loading,
-    error,
-    applyFilters,
-  };
-};
-
-// Custom hook for managing vehicle favorites
-export const useFavorites = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const toggleFavorite = useCallback(async (vehicleId) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const updatedVehicle = await vehicleAPI.toggleFavorite(vehicleId);
-      return updatedVehicle;
-    } catch (err) {
-      setError(err.message);
-
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return {
-    toggleFavorite,
-    loading,
-    error,
   };
 };
 
@@ -263,8 +205,7 @@ export const useAuctions = () => {
     try {
       const data = await auctionAPI.getActive();
       return data;
-    } catch (err) {
-
+    } catch (_err) {
       return [];
     }
   }, []);

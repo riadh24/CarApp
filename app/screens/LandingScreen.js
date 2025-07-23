@@ -9,15 +9,13 @@ import {
     Text,
     View
 } from 'react-native';
-import { useDispatch } from 'react-redux';
 import { Button } from '../components';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
-
-import { setHasSeenLanding } from '../Store';
 
 const LandingScreen = ({ navigation }) => {
     const { t } = useTranslation();
-    const dispatch = useDispatch();
+    const { setHasSeenLanding } = useAuth();
     const opacity = React.useRef(new Animated.Value(0)).current;
 
     React.useEffect(() => {
@@ -28,12 +26,14 @@ const LandingScreen = ({ navigation }) => {
         }).start();
     }, [opacity]);
 
-    const handleGetStarted = () => {
+    const handleGetStarted = async () => {
         try {
-            dispatch(setHasSeenLanding(true));
-            // Navigation is handled automatically by Redux state change
+            await setHasSeenLanding(true);
+            // Navigation is handled automatically by auth state change
         } catch (error) {
-            console.error('Error in handleGetStarted:', error);
+            if (__DEV__) {
+                console.error('Error in handleGetStarted:', error);
+            }
         }
     };
 
@@ -53,7 +53,6 @@ const LandingScreen = ({ navigation }) => {
                     style={styles.gradient}
                 >
                     <Animated.View style={[styles.content, { opacity }]}>
-                        {/* Title */}
                         <View style={styles.textContainer}>
                             <Text style={styles.title}>
                                 {t('landing.title')}

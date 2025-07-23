@@ -1,13 +1,13 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useSelector } from 'react-redux';
-import LandingScreen from '../screens/LandingScreen';
+import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import AuthScreen from '../screens/AuthScreen';
+import LandingScreen from '../screens/LandingScreen';
 
 const Stack = createStackNavigator();
 
 const AuthStack = () => {
-  const hasSeenLanding = useSelector(state => state.profile.hasSeenLanding);
+  const { hasSeenLanding } = useAuth();
   
   return (
     <Stack.Navigator

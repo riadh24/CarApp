@@ -1,10 +1,9 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import { MenuItem } from '../components';
+import { useAuth } from '../contexts/AuthContext';
 import useTheme from '../hooks/UseThemeHooks';
 import { useTranslation } from '../hooks/useTranslation';
-import { logout, setHasSeenLanding } from '../Store';
 import MainStack from './MainStack';
 
 const Drawer = createDrawerNavigator();
@@ -12,13 +11,12 @@ const Drawer = createDrawerNavigator();
 // Custom Drawer Content
 const CustomDrawerContent = ({ navigation }) => {
   const { t, changeLanguage, currentLanguage } = useTranslation();
-  const profile = useSelector(state => state.profile);
+  const { user, logout, setHasSeenLanding } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
-  const dispatch = useDispatch();
 
-  const handleLogout = () => {
-    dispatch(logout());
-    dispatch(setHasSeenLanding(false)); // Reset to show landing screen
+  const handleLogout = async () => {
+    await logout();
+    await setHasSeenLanding(false); // Reset to show landing screen
     navigation.closeDrawer();
   };
 
@@ -38,10 +36,10 @@ const CustomDrawerContent = ({ navigation }) => {
       {/* Profile Section */}
       <View style={[styles.profileSection, { backgroundColor: theme.colors.primaryVariant }]}>
         <Image
-          source={{ uri: profile.avatar }}
+          source={{ uri: user?.avatar || 'https://img.freepik.com/premium-vector/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-vector-illustration_561158-3383.jpg?w=1380' }}
           style={styles.avatar}
         />
-        <Text style={[styles.email, { color: '#ffffff' }]}>{profile.email}</Text>
+        <Text style={[styles.email, { color: '#ffffff' }]}>{user?.email || t('auth.notLoggedIn')}</Text>
       </View>
 
       <View style={styles.menuSection}>

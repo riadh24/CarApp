@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import useTheme from '../hooks/UseThemeHooks';
-import { parseVehicleDate, toggleFavorite } from '../Store';
+import { toggleFavorite } from '../Store';
+import { parseVehicleDate } from '../utils';
 
 const { height } = Dimensions.get('window');
 
@@ -96,7 +97,6 @@ const CarDetail = ({ navigation, route }) => {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity 
                         style={[styles.backButton, { backgroundColor: theme.colors.overlay }]}
@@ -126,7 +126,6 @@ const CarDetail = ({ navigation, route }) => {
                     />
                 </View>
 
-                {/* Vehicle Info */}
                 <View style={[styles.infoContainer, { backgroundColor: theme.colors.surface }]}>
                     <View style={styles.titleSection}>
                         <Text style={[styles.carTitle, { color: theme.colors.text }]}>
@@ -135,7 +134,6 @@ const CarDetail = ({ navigation, route }) => {
                         <Text style={[styles.carYear, { color: theme.colors.textSecondary }]}>{selectedVehicle.year}</Text>
                     </View>
 
-                    {/* Auction Timer */}
                     <View style={styles.auctionSection}>
                         <View style={styles.timerContainer}>
                             <Ionicons name="time-outline" size={20} color={theme.colors.primary} />
@@ -153,13 +151,11 @@ const CarDetail = ({ navigation, route }) => {
                         </Text>
                     </View>
 
-                    {/* Starting Bid */}
                     <View style={styles.bidSection}>
                         <Text style={styles.bidLabel}>Starting Bid</Text>
                         <Text style={styles.bidAmount}>£{selectedVehicle.startingBid.toLocaleString()}</Text>
                     </View>
 
-                    {/* Vehicle Specifications */}
                     <View style={styles.specsSection}>
                         <Text style={styles.sectionTitle}>Vehicle Specifications</Text>
                         
@@ -186,7 +182,6 @@ const CarDetail = ({ navigation, route }) => {
                         </View>
                     </View>
 
-                    {/* Description */}
                     <View style={styles.descriptionSection}>
                         <Text style={styles.sectionTitle}>Description</Text>
                         <Text style={styles.description}>
@@ -203,7 +198,6 @@ const CarDetail = ({ navigation, route }) => {
                 </View>
             </ScrollView>
 
-            {/* Bottom Action Button */}
             <View style={styles.bottomActions}>
                 <TouchableOpacity style={styles.bidButton}>
                     <Text style={styles.bidButtonText}>Place Bid</Text>

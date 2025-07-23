@@ -2,16 +2,17 @@ import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useAuth } from '../contexts/AuthContext';
 import SmartNotificationService from '../services/SmartNotificationService';
-import { parseVehicleDate } from '../Store';
+import { parseVehicleDate } from '../utils';
 
 /**
  * Custom hook for managing auction notifications
- * Integrates with Redux store and handles notification lifecycle
+ * Integrates with Redux store and Auth Context for notification lifecycle
  */
 export const useAuctionNotifications = () => {
   const vehicles = useSelector(state => state.vehicles.allVehicles);
-  const isAuthenticated = useSelector(state => state.profile.isAuthenticated);
+  const { isAuthenticated } = useAuth();
 
   /**
    * Initialize notification system
@@ -104,10 +105,7 @@ export const useAuctionNotifications = () => {
   const handleNotificationResponse = useCallback((response) => {
     const data = response.notification.request.content.data;
     
-    if (data?.type === 'auction-ended' || data?.type === 'auction-ended-test') {
-      // Navigate to car details or show relevant screen
-      
-      // You can dispatch navigation actions here or return data for the component to handle
+    if (data?.type === 'auction-ended' || data?.type === 'auction-ended-test') {      
       return {
         type: 'navigate-to-vehicle',
         vehicleId: data.vehicleId,

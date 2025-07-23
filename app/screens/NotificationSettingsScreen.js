@@ -10,10 +10,10 @@ import {
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import LanguageSelector from '../components/LanguageSelector';
+import { LanguageToggle } from '../components';
 import { Header } from '../components/ui';
-import { getThemeColors } from '../constants/theme';
 import { useAuctionNotifications } from '../hooks/useAuctionNotifications';
+import useTheme from '../hooks/UseThemeHooks';
 import { useTranslation } from '../hooks/useTranslation';
 
 const NotificationSettingsScreen = ({ navigation }) => {
@@ -22,7 +22,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [testNotificationSent, setTestNotificationSent] = useState(false);
   
-  const theme = useSelector(state => state.profile.isDarkTheme);
+  const { theme } = useTheme();
   const vehicles = useSelector(state => state.vehicles.allVehicles);
   const favoriteVehicles = vehicles.filter(v => v.favourite);
   
@@ -33,8 +33,7 @@ const NotificationSettingsScreen = ({ navigation }) => {
     initializeNotifications,
   } = useAuctionNotifications();
 
-  const colors = getThemeColors(theme);
-  const styles = createStyles(colors);
+  const styles = createStyles(theme.colors);
 
   useEffect(() => {
     updateStats();
@@ -116,9 +115,8 @@ const NotificationSettingsScreen = ({ navigation }) => {
       />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Language Selector */}
         <View style={styles.section}>
-          <LanguageSelector />
+          <LanguageToggle />
         </View>
 
         <View style={styles.section}>
@@ -134,14 +132,12 @@ const NotificationSettingsScreen = ({ navigation }) => {
             <Switch
               value={notificationsEnabled}
               onValueChange={handleToggleNotifications}
-              trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor={notificationsEnabled ? 'white' : colors.textSecondary}
+              trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
+              thumbColor={notificationsEnabled ? 'white' : theme.colors.textSecondary}
             />
           </View>
         </View>
 
-
-        {/* Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('notificationSettings.actions')}</Text>
           

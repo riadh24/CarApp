@@ -1,10 +1,38 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilters } from '../Store';
+import { createSmartSearchFilter, extractUniqueValues, getSearchSuggestions } from '../utils/searchUtils';
 
+/**
+ * Advanced vehicle filtering hook with dynamic search capabilities
+ * 
+ * This hook provides comprehensive filtering functionality for vehicle data,
+ * including smart search that automatically extracts available makes and models
+ * from the store data rather than using hardcoded values.
+ * 
+ * Features:
+ * - Dynamic extraction of available makes and models from store
+ * - Smart search with exact matching, partial matching, and fuzzy matching
+ * - Search suggestions for autocomplete functionality
+ * - Support for both API mode and Redux mode
+ * - Comprehensive filter management (make, model, price range, favorites)
+ * 
+ * @param {boolean} apiMode - Whether to use API-based filtering or Redux
+ * @returns {Object} Filter state and management functions
+ */
 export const useVehicleFilters = (apiMode = false) => {
   const dispatch = useDispatch();
   const reduxFilters = useSelector(state => state.vehicles.filters);
+  const allVehicles = useSelector(state => state.vehicles.allVehicles);
+  
+  // Dynamically extract unique makes and models from vehicle data
+  const availableMakes = useMemo(() => 
+    extractUniqueValues(allVehicles, 'make'), [allVehicles]
+  );
+  
+  const availableModels = useMemo(() => 
+    extractUniqueValues(allVehicles, 'model'), [allVehicles]
+  );
   
   const [apiFilters, setApiFilters] = useState({
     make: '',
@@ -102,13 +130,12 @@ export const useVehicleFilters = (apiMode = false) => {
   }, [currentFilters]);
 
   const getSearchFilter = useCallback((searchText) => {
-    const lowerText = searchText.toLowerCase();
-    if (lowerText.includes('tesla')) return { make: 'Tesla' };
-    if (lowerText.includes('bmw')) return { make: 'BMW' };
-    if (lowerText.includes('audi')) return { make: 'Audi' };
-    if (lowerText.includes('mercedes')) return { make: 'Mercedes' };
-    return { make: '' };
-  }, []);
+    return createSmartSearchFilter(searchText, availableMakes, availableModels, allVehicles);
+  }, [availableMakes, availableModels, allVehicles]);
+
+  const getSearchSuggestionsForInput = useCallback((input, maxSuggestions = 5) => {
+    return getSearchSuggestions(input, availableMakes, availableModels, maxSuggestions);
+  }, [availableMakes, availableModels]);
 
   const applySearchFilter = useCallback((searchText) => {
     const searchFilter = getSearchFilter(searchText);
@@ -130,6 +157,9 @@ export const useVehicleFilters = (apiMode = false) => {
     applySearchFilter,
     isFilterActive,
     defaultFilters,
+    availableMakes,
+    availableModels,
+    getSearchSuggestions: getSearchSuggestionsForInput,
   };
 };
 
