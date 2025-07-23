@@ -1,0 +1,9 @@
+{
+  "name": "test-runner",
+  "version": "1.0.0",
+  "scripts": {
+    "test:auth": "jest __tests__/AuthContext.test.js --forceExit",
+    "test:store": "jest __tests__/StoreTests.test.js --forceExit", 
+    "test:filter": "jest __tests__/filter.test.js --forceExit"
+  }
+}
