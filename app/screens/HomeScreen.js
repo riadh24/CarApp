@@ -9,10 +9,13 @@ import {
     Text,
     View,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+
 import { useVehicles, useVehicleSearch } from '../hooks/useApiHooks';
+import { usePagination } from '../hooks/usePagination';
 import useTheme from '../hooks/UseThemeHooks';
 import { useTranslation } from '../hooks/useTranslation';
+import { useVehicleFilters } from '../hooks/useVehicleFilters';
 import { checkAPIHealth } from '../services/ApiService';
 
 import {
@@ -24,27 +27,32 @@ import {
     Header,
     SearchBar
 } from '../components';
-import { setFilters as setReduxFilters } from '../Store';
 
 const HomeScreen = ({ navigation }) => {
     const { t } = useTranslation();
-    const dispatch = useDispatch();
     const { theme } = useTheme();
     
-    // Local state
     const [showFilters, setShowFilters] = useState(false);
     const [searchText, setSearchText] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [apiMode, setApiMode] = useState(false); // Toggle between API and Redux
+    const [apiMode, setApiMode] = useState(false);
     
-    // API hooks
-    const [filters, setFilters] = useState({
-        make: '',
-        model: '',
-        minBid: 0,
-        maxBid: 100000,
-        showFavoritesOnly: false,
-    });
+    const {
+        filters,
+        filterCount,
+        updateFilters,
+        resetFilters,
+        toggleFavorites,
+        toggleMake,
+        applySearchFilter,
+    } = useVehicleFilters(apiMode);
+
+    const {
+        currentPage,
+        isLoadingMore,
+        resetPagination,
+        loadMoreItems,
+        getPaginatedData,
+    } = usePagination(apiMode, 0, 20, pagination); // Will be updated after vehicles is defined
     
     // Use API hooks
     const {
@@ -55,83 +63,29 @@ const HomeScreen = ({ navigation }) => {
     
     const { search, results: searchResults, loading: searchLoading } = useVehicleSearch();
     
-    // Redux fallback (existing data)
-    const { filteredVehicles: reduxVehicles, filters: reduxFilters } = useSelector(state => state.vehicles);
-    const allVehicles = useSelector(state => state.vehicles.allVehicles);
+    const { filteredVehicles: reduxVehicles = [] } = useSelector(state => state.vehicles);
+    const allVehicles = useSelector(state => state.vehicles.allVehicles || []);
     
-    // Check API health on component mount
     useEffect(() => {
         const checkAPI = async () => {
             const isHealthy = await checkAPIHealth();
             if (isHealthy) {
                 setApiMode(true);
             }
-            // Removed the alert - app will silently fall back to offline mode
         };
         checkAPI();
     }, [t]);
     
-    // Determine which data source to use
     const vehicles = apiMode ? (searchText ? searchResults : apiVehicles) : reduxVehicles;
     const loading = apiMode ? (searchText ? searchLoading : apiLoading) : false;
-    const currentFilters = apiMode ? filters : reduxFilters;
 
-    // Get unique makes for filter dropdown - memoized to prevent unnecessary rerenders
     const uniqueMakes = useMemo(() => {
         const vehicleList = apiMode ? apiVehicles : allVehicles;
+        if (!vehicleList || !Array.isArray(vehicleList)) return [];
         return [...new Set(vehicleList.map(v => v.make))];
     }, [apiMode, apiVehicles, allVehicles]);
 
-    // Pagination logic for API mode
-    const ITEMS_PER_PAGE = 20;
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    
-    // Paginated vehicles for Redux mode
-    const paginatedVehicles = useMemo(() => {
-        if (apiMode) return vehicles; // API handles pagination
-        return vehicles.slice(0, currentPage * ITEMS_PER_PAGE);
-    }, [apiMode, vehicles, currentPage, ITEMS_PER_PAGE]);
-
-    // Check if there are more items to load (Redux mode)
-    const hasMoreItems = useMemo(() => {
-        if (apiMode) return pagination?.hasNextPage || false;
-        return vehicles.length > currentPage * ITEMS_PER_PAGE;
-    }, [apiMode, pagination?.hasNextPage, vehicles.length, currentPage, ITEMS_PER_PAGE]);
-
-    // Reset pagination when filters change
-    const resetPagination = useCallback(() => {
-        setCurrentPage(1);
-    }, []);
-
-    // Load more items when reaching end of list
-    const loadMoreItems = useCallback(() => {
-        if (apiMode) {
-            // API mode: load next page
-            if (pagination?.hasNextPage && !loading) {
-                setCurrentPage(prev => prev + 1);
-            }
-        } else {
-            // Redux mode: simulate loading with delay
-            if (hasMoreItems && !isLoadingMore) {
-                setIsLoadingMore(true);
-                setTimeout(() => {
-                    setCurrentPage(prev => prev + 1);
-                    setIsLoadingMore(false);
-                }, 300);
-            }
-        }
-    }, [apiMode, pagination?.hasNextPage, loading, hasMoreItems, isLoadingMore]);
-
-    // Filter count for badge
-    const filterCount = useMemo(() => {
-        let count = 0;
-        if (currentFilters.make) count++;
-        if (currentFilters.model) count++;
-        if (currentFilters.showFavoritesOnly) count++;
-        if (currentFilters.minBid > 0) count++;
-        if (currentFilters.maxBid < 100000) count++;
-        return count;
-    }, [currentFilters]);
+    const paginatedVehicles = getPaginatedData(vehicles || []);
 
     const handleSearch = (text) => {
         setSearchText(text);
@@ -143,23 +97,15 @@ const HomeScreen = ({ navigation }) => {
                 search(text, filters);
             }
         } else {
-            // Redux search logic (existing)
-            dispatch(setReduxFilters({ 
-                make: text.toLowerCase().includes('tesla') ? 'Tesla' : 
-                      text.toLowerCase().includes('bmw') ? 'BMW' :
-                      text.toLowerCase().includes('audi') ? 'Audi' : ''
-            }));
+            // Apply search filter using the hook
+            applySearchFilter(text);
         }
     };
 
     // Handle filter changes
     const handleFilterChange = (newFilters) => {
         resetPagination();
-        if (apiMode) {
-            setFilters(newFilters);
-        } else {
-            dispatch(setReduxFilters(newFilters));
-        }
+        updateFilters(newFilters);
     };
 
     const renderVehicleItem = useCallback(({ item }) => (
@@ -197,11 +143,10 @@ const HomeScreen = ({ navigation }) => {
                     <FilterChip
                         label="Favorites"
                         icon="heart"
-                        active={currentFilters.showFavoritesOnly}
+                        active={filters.showFavoritesOnly}
                         onPress={() => {
                             resetPagination();
-                            const newFilters = { ...currentFilters, showFavoritesOnly: !currentFilters.showFavoritesOnly };
-                            handleFilterChange(newFilters);
+                            toggleFavorites();
                         }}
                     />
                     
@@ -209,11 +154,10 @@ const HomeScreen = ({ navigation }) => {
                         <FilterChip
                             key={make}
                             label={make}
-                            active={currentFilters.make === make}
+                            active={filters.make === make}
                             onPress={() => {
                                 resetPagination();
-                                const newFilters = { ...currentFilters, make: currentFilters.make === make ? '' : make };
-                                handleFilterChange(newFilters);
+                                toggleMake(make);
                             }}
                         />
                     ))}
@@ -223,7 +167,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const renderVehicleGrid = () => {
-        if (vehicles.length === 0) {
+        if (!vehicles || vehicles.length === 0) {
             return (
                 <EmptyState
                     icon={<Ionicons name="car-outline" size={64} color="#ccc" />}
@@ -234,14 +178,7 @@ const HomeScreen = ({ navigation }) => {
                         title="Reset Filters"
                         onPress={() => {
                             resetPagination();
-                            const resetFilters = {
-                                make: '',
-                                model: '',
-                                minBid: 0,
-                                maxBid: 100000,
-                                showFavoritesOnly: false,
-                            };
-                            handleFilterChange(resetFilters);
+                            resetFilters();
                         }}
                         variant="primary"
                         size="small"
@@ -253,9 +190,9 @@ const HomeScreen = ({ navigation }) => {
         return (
             <View style={styles.vehicleGridContainer}>
                 <Text style={[styles.resultsText, { color: theme.colors.textSecondary }]}>
-                    {vehicles.length} vehicle{vehicles.length !== 1 ? 's' : ''} found
-                    {paginatedVehicles.length !== vehicles.length && 
-                        ` (showing ${paginatedVehicles.length})`
+                    {(vehicles || []).length} vehicle{(vehicles || []).length !== 1 ? 's' : ''} found
+                    {(paginatedVehicles || []).length !== (vehicles || []).length && 
+                        ` (showing ${(paginatedVehicles || []).length})`
                     }
                 </Text>
                 <FlatList
@@ -306,21 +243,14 @@ const HomeScreen = ({ navigation }) => {
             <FilterModal
                 visible={showFilters}
                 onClose={() => setShowFilters(false)}
-                filters={currentFilters}
+                filters={filters}
                 onApplyFilters={(newFilters) => {
                     resetPagination();
                     handleFilterChange(newFilters);
                 }}
                 onResetFilters={() => {
                     resetPagination();
-                    const resetFilters = {
-                        make: '',
-                        model: '',
-                        minBid: 0,
-                        maxBid: 100000,
-                        showFavoritesOnly: false,
-                    };
-                    handleFilterChange(resetFilters);
+                    resetFilters();
                 }}
                 uniqueMakes={uniqueMakes}
             />

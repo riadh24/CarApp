@@ -1,18 +1,21 @@
 import * as Application from 'expo-application';
-import { NativeNotificationService } from '../../modules/notification-native';
 import AuctionNotificationModule from '../modules/AuctionNotificationModule';
 import ExpoGoNotificationService from '../services/ExpoGoNotificationService';
 
-/**
- * Smart notification service that automatically chooses the appropriate
- * notification implementation based on the runtime environment
- */
+// Try to import native module, fallback if not available
+let NativeNotificationService = null;
+try {
+  const nativeModule = require('../../modules/notification-native');
+  NativeNotificationService = nativeModule.NativeNotificationService;
+} catch (error) {
+  console.warn('Native notification module not available:', error.message);
+}
+
 class SmartNotificationService {
   constructor() {
     this.isExpoGo = Application.applicationName === 'Expo Go' || __DEV__;
-    this.hasNativeModule = true; // We now have a native module available
+    this.hasNativeModule = NativeNotificationService !== null;
     
-    // Priority: Native > Expo Notifications > ExpoGo fallback
     if (!this.isExpoGo && this.hasNativeModule) {
       this.service = NativeNotificationService;
       this.serviceType = 'native';
@@ -47,7 +50,6 @@ class SmartNotificationService {
   }
 
   async sendTestNotification(vehicle) {
-    // Use the appropriate method name based on service type
     if (this.serviceType === 'expo-go') {
       return this.service.sendTestNotification(vehicle);
     } else if (this.serviceType === 'native') {
@@ -73,7 +75,6 @@ class SmartNotificationService {
     return this.service.cleanup();
   }
 
-  // Additional method to get service info
   getServiceInfo() {
     return {
       isExpoGo: this.isExpoGo,

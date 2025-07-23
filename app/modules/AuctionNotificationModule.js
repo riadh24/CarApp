@@ -3,21 +3,16 @@ import * as Application from 'expo-application';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
+import { parseVehicleDate } from '../Store';
 
 const BACKGROUND_AUCTION_CHECK = 'background-auction-check';
 const AUCTION_NOTIFICATIONS_KEY = 'auction_notifications_scheduled';
 
-// Check if running in Expo Go
 const isExpoGo = () => {
   return Application.applicationName === 'Expo Go' || 
          __DEV__ && Platform.OS === 'web';
 };
 
-/**
- * Native Module for Car Auction Notifications
- * Handles scheduling, background monitoring, and notification delivery
- * for favorite car auctions that have ended.
- */
 class AuctionNotificationModule {
   constructor() {
     this.isInitialized = false;
@@ -25,15 +20,10 @@ class AuctionNotificationModule {
     this.fallbackTimer = null;
   }
 
-  /**
-   * Initialize the notification module
-   * Sets up notification handlers, permissions, and background tasks
-   */
   async initialize() {
     if (this.isInitialized) return;
 
     try {
-      // Configure notification handler
       Notifications.setNotificationHandler({
         handleNotification: async () => ({
           shouldShowAlert: true,
@@ -42,10 +32,7 @@ class AuctionNotificationModule {
         }),
       });
 
-      // Request permissions
       await this.requestPermissions();
-
-      // Set up notification categories for auction notifications
       await this.setupNotificationCategories();
 
       // Register background task only if not in Expo Go
@@ -163,11 +150,11 @@ class AuctionNotificationModule {
     if (!vehicle.favourite) return;
 
     const notificationId = `auction-${vehicle.id}`;
-    const auctionEndTime = new Date(vehicle.auctionDateTime);
+    const auctionEndTime = parseVehicleDate(vehicle.auctionDateTime);
     
-    // Check if auction has already ended
-    if (auctionEndTime <= new Date()) {
-      console.log(`[AuctionNotificationModule] Auction for ${vehicle.make} ${vehicle.model} has already ended`);
+    // Check if auction has already ended or date is invalid
+    if (!auctionEndTime || auctionEndTime <= new Date()) {
+      console.log(`[AuctionNotificationModule] Auction for ${vehicle.make} ${vehicle.model} has already ended or invalid date`);
       return;
     }
 

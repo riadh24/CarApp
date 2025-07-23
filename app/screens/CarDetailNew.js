@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import useTheme from '../hooks/UseThemeHooks';
-import { toggleFavorite } from '../Store';
+import { parseVehicleDate, toggleFavorite } from '../Store';
 
 const { height } = Dimensions.get('window');
 
@@ -33,7 +33,13 @@ const CarDetail = ({ navigation, route }) => {
 
         const updateTimeRemaining = () => {
             const now = new Date();
-            const auctionDate = new Date(selectedVehicle.auctionDateTime);
+            const auctionDate = parseVehicleDate(selectedVehicle.auctionDateTime);
+            
+            if (!auctionDate) {
+                setTimeRemaining('Invalid date');
+                return;
+            }
+            
             const diff = auctionDate - now;
 
             if (diff > 0) {
@@ -136,7 +142,7 @@ const CarDetail = ({ navigation, route }) => {
                             <Text style={[styles.timerText, { color: theme.colors.primary }]}>Auction ends in: {timeRemaining}</Text>
                         </View>
                         <Text style={[styles.auctionDate, { color: theme.colors.textSecondary }]}>
-                            {new Date(selectedVehicle.auctionDateTime).toLocaleDateString('en-GB', {
+                            {parseVehicleDate(selectedVehicle.auctionDateTime)?.toLocaleDateString('en-GB', {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'long',

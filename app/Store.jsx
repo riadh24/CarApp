@@ -5,6 +5,20 @@ import { persistReducer, persistStore } from 'redux-persist';
 import vehiclesData from './constants/vehicles.json';
 import SmartNotificationService from './services/SmartNotificationService';
 
+// Utility function to safely parse dates
+export const parseVehicleDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    // Handle both formats: "2024/04/15 09:00:00" and "2024-04-15 09:00:00"
+    const normalizedDate = dateString.replace(/\//g, '-');
+    const date = new Date(normalizedDate);
+    return isNaN(date.getTime()) ? null : date;
+  } catch (error) {
+    console.warn('Failed to parse date:', dateString, error);
+    return null;
+  }
+};
+
 const profileSlice = createSlice({
   name: 'profile',
   initialState: {
@@ -38,55 +52,60 @@ const profileSlice = createSlice({
 const vehiclesWithIds = vehiclesData.map((vehicle, index) => ({
   ...vehicle,
   id: index + 1,
-  auctionDateTime: new Date(vehicle.auctionDateTime.replace('/', '-')),
+  auctionDateTime: vehicle.auctionDateTime, // Keep as string for Redux serialization
 }));
 
+const defaultFilters = {
+  make: '',
+  model: '',
+  minBid: 0,
+  maxBid: 100000,
+  showFavoritesOnly: false,
+};
+
+const applyFiltersToVehicles = (vehicles, filters) => {
+  const { make, model, minBid, maxBid, showFavoritesOnly } = filters;
+  return vehicles.filter(vehicle => {
+    const matchesMake = !make || vehicle.make.toLowerCase().includes(make.toLowerCase());
+    const matchesModel = !model || vehicle.model.toLowerCase().includes(model.toLowerCase());
+    const matchesBid = vehicle.startingBid >= minBid && vehicle.startingBid <= maxBid;
+    const matchesFavorites = !showFavoritesOnly || vehicle.favourite;
+    
+    return matchesMake && matchesModel && matchesBid && matchesFavorites;
+  });
+};
+
+// Vehicles slice for vehicle data and filtering
 const vehiclesSlice = createSlice({
   name: 'vehicles',
   initialState: {
     allVehicles: vehiclesWithIds,
     filteredVehicles: vehiclesWithIds,
-    filters: {
-      make: '',
-      model: '',
-      minBid: 0,
-      maxBid: 100000,
-      showFavoritesOnly: false,
-    },
+    filters: defaultFilters,
   },
   reducers: {
     toggleFavorite: (state, action) => {
       const vehicleId = action.payload;
+      
       const vehicle = state.allVehicles.find(v => v.id === vehicleId);
       if (vehicle) {
         vehicle.favourite = !vehicle.favourite;
         SmartNotificationService.updateVehicleFavoriteStatus(vehicle, vehicle.favourite).catch(() => {});
       }
+      
       const filteredVehicle = state.filteredVehicles.find(v => v.id === vehicleId);
       if (filteredVehicle) {
         filteredVehicle.favourite = !filteredVehicle.favourite;
       }
     },
+    
     setFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
-      const { make, model, minBid, maxBid, showFavoritesOnly } = state.filters;
-      state.filteredVehicles = state.allVehicles.filter(vehicle => {
-        const matchesMake = !make || vehicle.make.toLowerCase().includes(make.toLowerCase());
-        const matchesModel = !model || vehicle.model.toLowerCase().includes(model.toLowerCase());
-        const matchesBid = vehicle.startingBid >= minBid && vehicle.startingBid <= maxBid;
-        const matchesFavorites = !showFavoritesOnly || vehicle.favourite;
-        
-        return matchesMake && matchesModel && matchesBid && matchesFavorites;
-      });
+      state.filteredVehicles = applyFiltersToVehicles(state.allVehicles, state.filters);
     },
+    
     resetFilters: (state) => {
-      state.filters = {
-        make: '',
-        model: '',
-        minBid: 0,
-        maxBid: 100000,
-        showFavoritesOnly: false,
-      };
+      state.filters = defaultFilters;
       state.filteredVehicles = state.allVehicles;
     },
   },
@@ -102,22 +121,46 @@ const persistConfig = {
   whitelist: ['profile', 'vehicles'],
 };
 
-const rootReducer = {
+const rootReducer = combineReducers({
   profile: profileSlice.reducer,
   vehicles: vehiclesSlice.reducer,
-};
+});
 
-const persistedReducer = persistReducer(persistConfig, combineReducers(rootReducer));
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        ignoredActions: [
+          'persist/PERSIST',
+          'persist/REHYDRATE',
+          'persist/REGISTER',
+          'persist/PURGE',
+          'persist/FLUSH',
+          'persist/PAUSE',
+        ],
+        ignoredPaths: ['_persist'],
+      },
       immutableCheck: false,
     }),
 });
 
-
 export const persistor = persistStore(store);
+
+// Clear persisted data (useful for development)
+export const clearPersistedData = async () => {
+  try {
+    await AsyncStorage.removeItem('persist:root');
+    console.log('Persisted data cleared');
+    // Optionally reload the app
+    if (__DEV__) {
+      console.log('Please reload the app to see changes');
+    }
+  } catch (error) {
+    console.error('Failed to clear persisted data:', error);
+  }
+};
+
 export default store;

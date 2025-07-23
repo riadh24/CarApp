@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import SmartNotificationService from '../services/SmartNotificationService';
+import { clearPersistedData } from '../Store';
 
 const TestNativeNotifications = () => {
   const [serviceInfo, setServiceInfo] = useState(null);
@@ -14,17 +15,22 @@ const TestNativeNotifications = () => {
     try {
       const info = SmartNotificationService.getServiceInfo();
       setServiceInfo(info);
-      
       await SmartNotificationService.initialize();
       
-      // Get permission status if using native module
-      if (info.serviceType === 'native') {
-        // This would work once the module is properly built
-        // const status = await SmartNotificationService.service.getPermissionStatus();
-        // setPermissionStatus(status);
+      if (info.serviceType === 'native' && SmartNotificationService.service) {
+        try {
+          const status = await SmartNotificationService.service.getPermissionStatus();
+          setPermissionStatus(status);
+        } catch (error) {
+          console.warn('Native permission check failed:', error);
+          setPermissionStatus('unavailable');
+        }
+      } else {
+        setPermissionStatus('using-expo');
       }
     } catch (error) {
       console.error('Failed to initialize service:', error);
+      setPermissionStatus('error');
     }
   };
 
@@ -51,16 +57,24 @@ const TestNativeNotifications = () => {
 
   const requestPermissions = async () => {
     try {
-      if (serviceInfo?.serviceType === 'native') {
-        // This would work once the module is properly built
-        // const status = await SmartNotificationService.service.requestPermissions();
-        // setPermissionStatus(status);
-        Alert.alert('Info', 'Native permissions would be requested here');
+      if (serviceInfo?.serviceType === 'native' && SmartNotificationService.service) {
+        const status = await SmartNotificationService.service.requestPermissions();
+        setPermissionStatus(status);
+        Alert.alert('Success', `Permissions ${status}`);
       } else {
-        Alert.alert('Info', 'Using Expo notification permissions');
+        Alert.alert('Info', `Using ${serviceInfo?.serviceType || 'expo'} notification system`);
       }
     } catch (error) {
       Alert.alert('Error', `Failed to request permissions: ${error.message}`);
+    }
+  };
+
+  const clearReduxData = async () => {
+    try {
+      await clearPersistedData();
+      Alert.alert('Success', 'Redux data cleared! Please reload the app.');
+    } catch (error) {
+      Alert.alert('Error', `Failed to clear data: ${error.message}`);
     }
   };
 
@@ -87,12 +101,20 @@ const TestNativeNotifications = () => {
         <Text style={styles.buttonText}>Send Test Notification</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={[styles.button, { backgroundColor: '#FF6B6B' }]} onPress={clearReduxData}>
+        <Text style={styles.buttonText}>Clear Redux Data (Dev)</Text>
+      </TouchableOpacity>
+
       <Text style={styles.note}>
-        Note: To use the native module, you need to run:{'\n'}
-        • npx expo run:android (for Android){'\n'}
-        • npx expo run:ios (for iOS){'\n'}
-        {'\n'}
-        The native module won&apos;t work in Expo Go.
+        {serviceInfo?.serviceType === 'native' ? 
+          'Native module active! Advanced features available.' :
+          `Current mode: ${serviceInfo?.serviceType || 'loading'}\n\n` +
+          'For native module:\n' +
+          '• Install: npx expo install expo-dev-client\n' +
+          '• Build: npx expo run:android\n' +
+          '• Build: npx expo run:ios\n\n' +
+          'Native features unavailable in Expo Go.'
+        }
       </Text>
     </View>
   );

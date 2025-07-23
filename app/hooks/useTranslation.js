@@ -1,9 +1,5 @@
 import { useTranslation as useI18nTranslation } from 'react-i18next';
 
-/**
- * Custom hook that wraps react-i18next useTranslation
- * Provides easy access to translation function and language utilities
- */
 export const useTranslation = () => {
   const { t, i18n } = useI18nTranslation();
 
