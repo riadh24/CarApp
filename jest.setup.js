@@ -1,13 +1,10 @@
-// Minimal Jest setup for React Native
-jest.mock('react-native', () => ({
-  StyleSheet: { create: (styles) => styles },
-  Platform: { OS: 'ios' },
-  Alert: { alert: jest.fn() },
-}));
-
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  getItem: jest.fn(() => Promise.resolve(null)),
-  setItem: jest.fn(() => Promise.resolve()),
-}));
-
+// Simple Jest setup for Store testing
 global.__DEV__ = true;
+
+// Mock console methods to reduce noise in tests
+global.console = {
+  ...console,
+  warn: jest.fn(),
+  error: jest.fn(),
+  log: jest.fn(),
+};
