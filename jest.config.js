@@ -3,10 +3,12 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
-    'node_modules/(?!(@reduxjs|redux-persist)/)'
+    'node_modules/(?!(expo-|@expo/|@react-native|react-native|@reduxjs|redux-persist)/)'
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/app/$1',
+    '^expo-application$': '<rootDir>/__mocks__/expo-application.js',
+    '^expo-modules-core$': '<rootDir>/__mocks__/expo-modules-core.js',
   },
   collectCoverageFrom: [
     'app/**/*.{js,jsx}',
