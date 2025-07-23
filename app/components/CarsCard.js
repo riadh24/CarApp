@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Image,
-  Text,
-  StyleSheet,
-  Dimensions
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import {
+    Dimensions,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import { useDispatch } from 'react-redux';
-import { toggleFavorite } from '../Store';
+import { parseVehicleDate, toggleFavorite } from '../Store';
 
 const { width } = Dimensions.get('window');
 
@@ -21,7 +21,13 @@ const CarsCard = ({ containerStyle, vehicle, onPress }) => {
   useEffect(() => {
     const updateTimeRemaining = () => {
       const now = new Date();
-      const auctionDate = new Date(vehicle.auctionDateTime);
+      const auctionDate = parseVehicleDate(vehicle.auctionDateTime);
+      
+      if (!auctionDate) {
+        setTimeRemaining('Invalid date');
+        return;
+      }
+      
       const diff = auctionDate - now;
 
       if (diff > 0) {

@@ -3,6 +3,7 @@ import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import SmartNotificationService from '../services/SmartNotificationService';
+import { parseVehicleDate } from '../Store';
 
 /**
  * Custom hook for managing auction notifications
@@ -43,10 +44,10 @@ export const useAuctionNotifications = () => {
       
       if (isFavorite) {
         // Show confirmation for scheduling notification
-        const auctionDate = new Date(vehicle.auctionDateTime);
+        const auctionDate = parseVehicleDate(vehicle.auctionDateTime);
         const now = new Date();
         
-        if (auctionDate > now) {
+        if (auctionDate && auctionDate > now) {
           Alert.alert(
             '🔔 Notification Scheduled',
             `You'll be notified when the auction for ${vehicle.make} ${vehicle.model} ends on ${auctionDate.toLocaleDateString()} at ${auctionDate.toLocaleTimeString()}.`,

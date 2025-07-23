@@ -2,13 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application';
 import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
+import { parseVehicleDate } from '../Store';
 
 const EXPO_GO_NOTIFICATIONS_KEY = 'expo_go_notifications';
 
 /**
  * Expo Go compatible notification service
- * Provides basic notification functionality that works in Expo Go
- * with fallbacks for missing features
+ * 
+ * NOTE: Starting from Expo SDK 53, push notifications are not supported in Expo Go.
+ * This service provides local notification functionality that works within Expo Go limitations.
+ * For full push notification support, use a development build (npx expo run:android/ios).
  */
 class ExpoGoNotificationService {
   constructor() {
@@ -16,13 +19,18 @@ class ExpoGoNotificationService {
     this.scheduledNotifications = new Map();
     this.appStateListener = null;
     this.isInitialized = false;
+    
+    // Suppress expected warnings about push notifications in Expo Go
+    if (this.isExpoGo) {
+      console.log('[ExpoGoNotificationService] Running in Expo Go - using local notifications only');
+    }
   }
 
   async initialize() {
     if (this.isInitialized) return;
 
     try {
-      // Set notification handler
+      // Set notification handler (local notifications only in Expo Go)
       Notifications.setNotificationHandler({
         handleNotification: async () => ({
           shouldShowAlert: true,
@@ -31,7 +39,7 @@ class ExpoGoNotificationService {
         }),
       });
 
-      // Request permissions
+      // Request permissions (local notifications only)
       await this.requestPermissions();
 
       // Set up app state monitoring for foreground checks
@@ -41,10 +49,11 @@ class ExpoGoNotificationService {
       await this.loadScheduledNotifications();
 
       this.isInitialized = true;
-      console.log('[ExpoGoNotificationService] Initialized for Expo Go compatibility');
+      console.log('[ExpoGoNotificationService] Initialized for Expo Go compatibility (local notifications only)');
     } catch (error) {
       console.error('[ExpoGoNotificationService] Initialization failed:', error);
-      throw error;
+      // Don't throw - continue with limited functionality
+      console.warn('[ExpoGoNotificationService] Continuing with limited notification support');
     }
   }
 
@@ -77,11 +86,11 @@ class ExpoGoNotificationService {
   async scheduleAuctionNotification(vehicle) {
     if (!vehicle.favourite) return;
 
-    const auctionEndTime = new Date(vehicle.auctionDateTime);
+    const auctionEndTime = parseVehicleDate(vehicle.auctionDateTime);
     const now = new Date();
 
-    // Check if auction has already ended
-    if (auctionEndTime <= now) {
+    // Check if auction has already ended or date is invalid
+    if (!auctionEndTime || auctionEndTime <= now) {
       console.log(`[ExpoGoNotificationService] Auction for ${vehicle.make} ${vehicle.model} has already ended`);
       return;
     }
@@ -90,7 +99,7 @@ class ExpoGoNotificationService {
       // Cancel existing notification
       await this.cancelAuctionNotification(vehicle.id);
 
-      // In Expo Go, we can only schedule local notifications
+      // In Expo Go, we can only schedule local notifications (no push notifications)
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: '🏁 Auction Ending Soon!',
